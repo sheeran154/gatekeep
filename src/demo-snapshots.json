@@ -1,0 +1,162 @@
+{
+  "clean": {
+    "captured_at": "2026-11-14T16:26:58.963Z",
+    "input": {
+      "chain": "ethereum",
+      "tx": {
+        "to": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        "value": "100000000000000000",
+        "data": "0x"
+      }
+    },
+    "expected_verdict": "APPROVE",
+    "verdict": {
+      "verdict": "APPROVE",
+      "risk_score": 0,
+      "chain": "ethereum",
+      "checks": [
+        {
+          "name": "recipient-address",
+          "status": "pass",
+          "detail": "Recipient is not a known burn address.",
+          "score_delta": 0
+        },
+        {
+          "name": "tx-shape",
+          "status": "pass",
+          "detail": "Plain native-currency transfer to a wallet address with an EIP-7702 delegation (delegated EOA) — plain transfers still behave like a normal wallet.",
+          "score_delta": -5
+        }
+      ],
+      "explanation": "Looks safe to sign — no red flags found in the checks above.",
+      "evidence": {
+        "block_number": 26414411,
+        "rpc_calls": 2,
+        "evidence_hash": "d38ae6b7319966b85980d03b8dbe4d925a28994bf191ffbdaf87a61292d2f662",
+        "evidence_hash_algo": "sha3-256",
+        "evidence_hash_note": "SHA3-256 (NIST) of the canonical inputs + block number. Labelled honestly — this is NOT keccak256 (Node crypto does not ship keccak)."
+      },
+      "signature": "r8xLyf8JbRMMb2c1TiZ1NsftoVu367e2gSU1pTM5tvT6MYGhUXT05CHpJxBacWBIrP/lmwjAALdWBd3LsV/1Cg==",
+      "signature_algo": "ed25519",
+      "public_key": "MCowBQYDK2VwAyEAJyMYR9jcl8gcmNfF2mWx6sdthdf34ttFzAdZ9l+0rGM=",
+      "signature_payload": "{\"block_number\":26414411,\"chain\":\"ethereum\",\"checks\":[{\"detail\":\"Recipient is not a known burn address.\",\"name\":\"recipient-address\",\"score_delta\":0,\"status\":\"pass\"},{\"detail\":\"Plain native-currency transfer to a wallet address with an EIP-7702 delegation (delegated EOA) — plain transfers still behave like a normal wallet.\",\"name\":\"tx-shape\",\"score_delta\":-5,\"status\":\"pass\"}],\"risk_score\":0,\"token\":null,\"tx\":{\"data\":\"0x\",\"to\":\"0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\",\"value\":\"100000000000000000\"},\"verdict\":\"APPROVE\",\"wallet\":null}"
+    }
+  },
+  "approval": {
+    "captured_at": "2026-11-14T16:26:59.137Z",
+    "input": {
+      "chain": "ethereum",
+      "tx": {
+        "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "value": "0",
+        "data": "0x095ea7b30000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    },
+    "expected_verdict": "REVIEW",
+    "verdict": {
+      "verdict": "REVIEW",
+      "risk_score": 30,
+      "chain": "ethereum",
+      "checks": [
+        {
+          "name": "recipient-address",
+          "status": "pass",
+          "detail": "Recipient is not a known burn address.",
+          "score_delta": 0
+        },
+        {
+          "name": "approval-amount",
+          "status": "fail",
+          "detail": "Unlimited approval (2^256-1) for USDC — the spender can move your entire balance of this token at any time until you revoke it.",
+          "score_delta": 40
+        },
+        {
+          "name": "spender-known",
+          "status": "pass",
+          "detail": "Spender is Uniswap V2 Router — a well-known protocol contract.",
+          "score_delta": -10
+        }
+      ],
+      "explanation": "Review before signing — the approval is unlimited (max uint256).",
+      "evidence": {
+        "block_number": 26414411,
+        "rpc_calls": 1,
+        "evidence_hash": "83663d251d51b8a7e07f2922cf2084712a69193bfd81bfeb04fe70a34281c0ed",
+        "evidence_hash_algo": "sha3-256",
+        "evidence_hash_note": "SHA3-256 (NIST) of the canonical inputs + block number. Labelled honestly — this is NOT keccak256 (Node crypto does not ship keccak)."
+      },
+      "signature": "3PvvAsL1sAmYXkJ4/a3k3TUUtQ5ZD5V7UL9PDbBHNfMIh5ybLYu4YRyWk7QtBif3+uXSzo8UHT2COtGAmVDxCg==",
+      "signature_algo": "ed25519",
+      "public_key": "MCowBQYDK2VwAyEAJyMYR9jcl8gcmNfF2mWx6sdthdf34ttFzAdZ9l+0rGM=",
+      "signature_payload": "{\"block_number\":26414411,\"chain\":\"ethereum\",\"checks\":[{\"detail\":\"Recipient is not a known burn address.\",\"name\":\"recipient-address\",\"score_delta\":0,\"status\":\"pass\"},{\"detail\":\"Unlimited approval (2^256-1) for USDC — the spender can move your entire balance of this token at any time until you revoke it.\",\"name\":\"approval-amount\",\"score_delta\":40,\"status\":\"fail\"},{\"detail\":\"Spender is Uniswap V2 Router — a well-known protocol contract.\",\"name\":\"spender-known\",\"score_delta\":-10,\"status\":\"pass\"}],\"risk_score\":30,\"token\":null,\"tx\":{\"data\":\"0x095ea7b30000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"to\":\"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48\",\"value\":\"0\"},\"verdict\":\"REVIEW\",\"wallet\":null}"
+    }
+  },
+  "honeypot": {
+    "captured_at": "2026-11-14T16:27:00.099Z",
+    "input": {
+      "chain": "base",
+      "token": "0x1111111111111111111111111111111111111111",
+      "tx": {
+        "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "value": "0",
+        "data": "0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    },
+    "expected_verdict": "REJECT",
+    "verdict": {
+      "verdict": "REJECT",
+      "risk_score": 100,
+      "chain": "base",
+      "checks": [
+        {
+          "name": "recipient-address",
+          "status": "pass",
+          "detail": "Recipient is not a known burn address.",
+          "score_delta": 0
+        },
+        {
+          "name": "approval-amount",
+          "status": "fail",
+          "detail": "Unlimited approval (2^256-1) for USDC — the spender can move your entire balance of this token at any time until you revoke it.",
+          "score_delta": 40
+        },
+        {
+          "name": "spender-known",
+          "status": "fail",
+          "detail": "Spender is a plain wallet (EOA), not a smart contract — token approvals to EOAs are almost never legitimate.",
+          "score_delta": 25
+        },
+        {
+          "name": "spender-history",
+          "status": "fail",
+          "detail": "This spender address has never sent a transaction — it is a fresh address with no on-chain history.",
+          "score_delta": 10
+        },
+        {
+          "name": "token-is-contract",
+          "status": "fail",
+          "detail": "This address has no contract code — it is not a token contract.",
+          "score_delta": 50
+        },
+        {
+          "name": "coverage-note",
+          "status": "pass",
+          "detail": "NOT checked here (no keyless source): contract source verification, LP lock/burn status, holder concentration, sell simulation. A low score means \"no red flags found in the checks above\", not \"this token is safe\".",
+          "score_delta": 0
+        }
+      ],
+      "explanation": "Do NOT sign — the address is not a token contract at all; the approval is unlimited (max uint256); the spender is an externally-owned account, not a contract.",
+      "evidence": {
+        "block_number": 57416225,
+        "rpc_calls": 5,
+        "evidence_hash": "2ba9cb024f3caba98126c5ae90dbd16a6c193a7a8b76ddf657260faf88c22910",
+        "evidence_hash_algo": "sha3-256",
+        "evidence_hash_note": "SHA3-256 (NIST) of the canonical inputs + block number. Labelled honestly — this is NOT keccak256 (Node crypto does not ship keccak)."
+      },
+      "signature": "zBey633TS1DGBRNUTr/URJl+HPPfrz39Z5o7kE6hm6V6NQySqlWWBgKNgTf5uqMM09wKBspEN08TyLSM7y9RDw==",
+      "signature_algo": "ed25519",
+      "public_key": "MCowBQYDK2VwAyEAJyMYR9jcl8gcmNfF2mWx6sdthdf34ttFzAdZ9l+0rGM=",
+      "signature_payload": "{\"block_number\":57416225,\"chain\":\"base\",\"checks\":[{\"detail\":\"Recipient is not a known burn address.\",\"name\":\"recipient-address\",\"score_delta\":0,\"status\":\"pass\"},{\"detail\":\"Unlimited approval (2^256-1) for USDC — the spender can move your entire balance of this token at any time until you revoke it.\",\"name\":\"approval-amount\",\"score_delta\":40,\"status\":\"fail\"},{\"detail\":\"Spender is a plain wallet (EOA), not a smart contract — token approvals to EOAs are almost never legitimate.\",\"name\":\"spender-known\",\"score_delta\":25,\"status\":\"fail\"},{\"detail\":\"This spender address has never sent a transaction — it is a fresh address with no on-chain history.\",\"name\":\"spender-history\",\"score_delta\":10,\"status\":\"fail\"},{\"detail\":\"This address has no contract code — it is not a token contract.\",\"name\":\"token-is-contract\",\"score_delta\":50,\"status\":\"fail\"},{\"detail\":\"NOT checked here (no keyless source): contract source verification, LP lock/burn status, holder concentration, sell simulation. A low score means \\\"no red flags found in the checks above\\\", not \\\"this token is safe\\\".\",\"name\":\"coverage-note\",\"score_delta\":0,\"status\":\"pass\"}],\"risk_score\":100,\"token\":\"0x1111111111111111111111111111111111111111\",\"tx\":{\"data\":\"0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"to\":\"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913\",\"value\":\"0\"},\"verdict\":\"REJECT\",\"wallet\":null}"
+    }
+  }
+}

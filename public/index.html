@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gatekeep — Wallet &amp; Transaction Guard Agent</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --muted:#8b949e;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --blue:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:880px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font-size:32px; margin:0 0 4px; }
+  h1 .shield { color:var(--green); }
+  .tag { color:var(--muted); margin:0 0 24px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin:16px 0; }
+  h2 { font-size:19px; margin:0 0 12px; }
+  p { margin:8px 0; }
+  .muted { color:var(--muted); font-size:14px; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#21262d; color:var(--text); border:1px solid var(--line); border-radius:8px;
+    padding:10px 16px; font-size:15px; cursor:pointer; }
+  button:hover { border-color:var(--blue); }
+  button.primary { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  label { display:block; font-size:13px; color:var(--muted); margin:12px 0 4px; }
+  input, select, textarea { width:100%; background:#0d1117; color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:10px 12px; font:14px ui-monospace,Menlo,monospace; }
+  textarea { min-height:64px; resize:vertical; }
+  .verdict { font-size:26px; font-weight:700; letter-spacing:.5px; }
+  .verdict.APPROVE { color:var(--green); } .verdict.REVIEW { color:var(--amber); } .verdict.REJECT { color:var(--red); }
+  .bar { height:10px; background:#21262d; border-radius:6px; overflow:hidden; margin:8px 0 4px; }
+  .bar > div { height:100%; background:var(--green); }
+  .bar > div.REVIEW { background:var(--amber); } .bar > div.REJECT { background:var(--red); }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:12px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .pill { display:inline-block; padding:1px 9px; border-radius:99px; font-size:12px; font-weight:600; }
+  .pill.pass { background:rgba(63,185,80,.18); color:var(--green); }
+  .pill.warn { background:rgba(210,153,34,.18); color:var(--amber); }
+  .pill.fail { background:rgba(248,81,73,.18); color:var(--red); }
+  .pill.unknown { background:rgba(139,148,158,.18); color:var(--muted); }
+  pre { background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:12px;
+    overflow-x:auto; font-size:12px; white-space:pre-wrap; word-break:break-all; }
+  code { font-family:ui-monospace,Menlo,monospace; font-size:13px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="shield">🛡️</span> Gatekeep</h1>
+  <p class="tag">Wallet &amp; transaction guard agent — screens approvals, transactions and tokens
+  <b>before you sign</b>, and returns a deterministic, signed verdict.</p>
+
+  <div class="card">
+    <h2>What it does</h2>
+    <p>Paste a wallet address, a pending transaction, or a token address. Gatekeep checks it against
+    live on-chain data (public RPC + DexScreener) and answers one question:
+    <b>is it safe to sign?</b></p>
+    <p>Checks: unlimited-approval decoding, spender reputation (known protocol / unknown contract / plain wallet / fresh address),
+    token contract + owner privileges, DEX liquidity / age / buy-sell balance, and your wallet's open unlimited approvals.
+    Every verdict is deterministic, reproducible from public chain data at a stated block height, and signed with the
+    agent's per-deployment ed25519 key. Nothing here moves funds — all reads are <code>eth_call</code> / public GETs.</p>
+    <p class="muted">Built for Agent Games by zkVerify — Wildcard track, Season 01.
+    <a href="https://agentgames.zkverify.io/events/wildcard" style="color:var(--blue)">Track page</a> ·
+    <a href="/health" style="color:var(--blue)">/health</a></p>
+  </div>
+
+  <div class="card">
+    <h2>Try the demo cases</h2>
+    <div class="btns">
+      <button data-demo="clean">✅ Clean transfer</button>
+      <button data-demo="approval">⚠️ Unlimited approval</button>
+      <button data-demo="honeypot">⛔ Fake token + approval</button>
+    </div>
+    <p class="muted" id="demo-desc">Click a case to run it against live chain data (falls back to a clearly-labelled cached snapshot if the RPC is unreachable).</p>
+  </div>
+
+  <div class="card">
+    <h2>Screen your own transaction</h2>
+    <div class="row">
+      <div>
+        <label for="chain">Chain</label>
+        <select id="chain">
+          <option value="ethereum">ethereum</option>
+          <option value="base">base</option>
+          <option value="sepolia">sepolia (testnet)</option>
+          <option value="base-sepolia">base-sepolia (testnet)</option>
+        </select>
+      </div>
+      <div>
+        <label for="wallet">Your wallet (optional — hygiene scan)</label>
+        <input id="wallet" placeholder="0x…" spellcheck="false">
+      </div>
+    </div>
+    <label for="token">Token to check (optional)</label>
+    <input id="token" placeholder="0x… token contract address" spellcheck="false">
+    <div class="row">
+      <div>
+        <label for="txto">tx.to — recipient / token contract (optional)</label>
+        <input id="txto" placeholder="0x…" spellcheck="false">
+      </div>
+      <div>
+        <label for="txvalue">tx.value — native amount in wei (optional)</label>
+        <input id="txvalue" placeholder="0" spellcheck="false">
+      </div>
+    </div>
+    <label for="txdata">tx.data — calldata, e.g. approve() (optional)</label>
+    <textarea id="txdata" placeholder="0x095ea7b3…" spellcheck="false"></textarea>
+    <div class="btns"><button class="primary" id="run">🛡️ Guard this transaction</button></div>
+    <p class="muted">Or call the API directly: <code>POST /guard</code> with
+    <code>{ "chain": "ethereum", "token": "0x…" }</code>. See the repo README for the full schema.</p>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2>Verdict</h2>
+    <div id="verdict-line"></div>
+    <div id="verdict-body"></div>
+  </div>
+
+  <div class="card">
+    <h2>What Gatekeep does NOT do</h2>
+    <p class="muted">No contract-source verification, no LP lock/burn or holder-concentration data, no sell
+    simulation (no keyless source for those) — a low score means "no red flags found in the checks above",
+    not "this token is safe". "Unknown" checks never add risk points. Full limits in the README.</p>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function pill(status) { return `<span class="pill ${status}">${status.toUpperCase()}</span>`; }
+
+function renderVerdict(data) {
+  const el = $('result');
+  el.style.display = 'block';
+  const liveNote = data.live === false
+    ? `<p class="muted">⚠️ ${escapeHtml(data.source || 'cached snapshot')}</p>` : '';
+  $('verdict-line').innerHTML =
+    `<div class="verdict ${data.verdict}">${data.verdict}</div>` +
+    `<div class="bar"><div class="${data.verdict}" style="width:${data.risk_score}%"></div></div>` +
+    `<div>Risk score: <b>${data.risk_score} / 100</b> &nbsp;·&nbsp; chain: ${escapeHtml(data.chain)}</div>` +
+    `<p>${escapeHtml(data.explanation || '')}</p>` + liveNote;
+  const rows = (data.checks || []).map(c =>
+    `<tr><td>${pill(c.status)}</td><td><b>${escapeHtml(c.name)}</b><br>${escapeHtml(c.detail)}</td><td>${c.score_delta > 0 ? '+' : ''}${c.score_delta}</td></tr>`).join('');
+  const ev = data.evidence || {};
+  $('verdict-body').innerHTML =
+    `<table><tr><th>Status</th><th>Check</th><th>Score</th></tr>${rows}</table>` +
+    `<h3 style="margin:18px 0 6px;font-size:15px">Evidence &amp; signature</h3>` +
+    `<p class="muted">Block ${ev.block_number ?? 'unknown'} · ${ev.rpc_calls ?? 0} upstream calls ·
+    evidence hash (${ev.evidence_hash_algo || 'sha3-256'}): <code>${escapeHtml(ev.evidence_hash || '')}</code></p>` +
+    `<pre>${escapeHtml(JSON.stringify({ signature: data.signature, public_key: data.public_key, signature_algo: data.signature_algo }, null, 2))}</pre>` +
+    `<p class="muted">Verify with <code>POST /verify</code> using the <code>signature_payload</code> from the raw JSON response.
+    The signature binds this verdict to this deployment's key — anyone can re-run the same checks at the same block height and reproduce it.</p>`;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function callApi(path, body) {
+  const res = await fetch(path, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+document.querySelectorAll('[data-demo]').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      const res = await fetch('/demo/' + btn.dataset.demo);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      if (data.description) $('demo-desc').textContent = data.description;
+      renderVerdict(data);
+    } catch (e) {
+      $('result').style.display = 'block';
+      $('verdict-line').innerHTML = `<p style="color:var(--red)">Demo failed: ${escapeHtml(e.message)}</p>`;
+    } finally { btn.disabled = false; }
+  });
+});
+
+$('run').addEventListener('click', async () => {
+  const body = { chain: $('chain').value };
+  const wallet = $('wallet').value.trim();
+  const token = $('token').value.trim();
+  const txto = $('txto').value.trim();
+  const txvalue = $('txvalue').value.trim();
+  const txdata = $('txdata').value.trim();
+  if (wallet) body.wallet = wallet;
+  if (token) body.token = token;
+  if (txto || txdata) body.tx = { to: txto || '0x0000000000000000000000000000000000000000', value: txvalue || '0', data: txdata || '0x' };
+  $('run').disabled = true;
+  try {
+    const data = await callApi('/guard', body);
+    renderVerdict(data);
+  } catch (e) {
+    $('result').style.display = 'block';
+    $('verdict-line').innerHTML = `<p style="color:var(--red)">${escapeHtml(e.message)}</p>`;
+    $('verdict-body').innerHTML = '';
+  } finally { $('run').disabled = false; }
+});
+</script>
+</body>
+</html>
