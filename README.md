@@ -159,6 +159,14 @@ HTTPS URL works (Render free tier, Vercel, Railway). Keep it live through judgin
 (22–30 Nov 2026). Free tiers that sleep are fine — the agent is request/response only,
 no live dispatch.
 
+**Vercel (Hobby, no card required):** the repo ships a serverless entry point
+(`api/index.js` + `vercel.json` — all routes rewrite to the Express app). Import
+the repo in Vercel, no build settings needed (framework preset: Other), no env vars.
+Note: Vercel's filesystem is read-only except `/tmp`, so the per-deployment
+signing key is stored under `/tmp/.keys` there (`GATEKEEP_KEY_DIR` env override,
+default `.keys/` elsewhere). A cold start generates a fresh deployment key; every
+verdict publishes its own `public_key`, so signatures stay verifiable.
+
 ## What Gatekeep does NOT do (honest limits)
 
 - **No contract-source verification** — no keyless source; the README and every verdict say so.

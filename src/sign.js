@@ -20,7 +20,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const KEY_DIR = path.join(__dirname, '..', '.keys');
+const KEY_DIR = process.env.GATEKEEP_KEY_DIR || path.join(__dirname, '..', '.keys');
 const KEY_FILE = path.join(KEY_DIR, 'gatekeep-ed25519.json');
 
 let keypair = null;
