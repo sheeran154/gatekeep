@@ -7,7 +7,7 @@
 
 Built for [Agent Games by zkVerify](https://agentgames.zkverify.io/events/wildcard) — Wildcard track, Season 01 (Nov 2026).
 
-Live demo: *TBD — endpoint URL goes here after deploy* · `GET /` is an interactive page with demo cases.
+Live demo: **https://gatekeep-sheeran154s-projects.vercel.app** · `GET /` is an interactive page with demo cases. `GET /health`, `POST /guard`, `GET /demo/:case`, `POST /verify`.
 
 ## The problem
 
